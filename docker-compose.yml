@@ -41,6 +41,38 @@ services:
       - eureka.client.serviceUrl.defaultZone=http://eureka:8761/eureka/
     restart: unless-stopped
 
+  answer:
+    container_name: answer-service
+    build:
+      context: ./spring-boot-microservices-angular/backend/answer-service
+      dockerfile: dockerfile
+    ports:
+      - "8083:8083"
+    depends_on:
+      - eureka
+      - gateway
+      - mongodb
+    networks:
+      - microservices-network
+    environment:
+      - eureka.client.serviceUrl.defaultZone=http://eureka:8761/eureka/
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
+
 networks:
   microservices-network:
     driver: bridge

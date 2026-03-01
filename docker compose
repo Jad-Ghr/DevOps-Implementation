@@ -1,8 +1,0 @@
-services:
-  frontend:
-    container_name: angular-frontend
-    build:
-      context: spring-boot-microservices-angular/frontend
-      dockerfile: Dockerfile
-    ports:
-      - "8090:8090"
