@@ -56,6 +56,48 @@ services:
       - eureka.client.serviceUrl.defaultZone=http://eureka:8761/eureka/
     restart: unless-stopped
 
+  course-service:
+    container_name: course-service
+    build:
+      context: ./spring-boot-microservices-angular/backend
+      dockerfile: course-service/Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      - eureka
+      - gateway
+      - mysql
+    networks:
+      - microservices-network
+    environment:
+      - PORT=8081
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/microservices_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
+      - eureka.client.serviceUrl.defaultZone=http://eureka:8761/eureka/
+    restart: unless-stopped
+
+  exam-service:
+    container_name: exam-service
+    build:
+      context: ./spring-boot-microservices-angular/backend
+      dockerfile: exam-service/Dockerfile
+    ports:
+      - "8082:8082"
+    depends_on:
+      - eureka
+      - gateway
+      - mysql
+    networks:
+      - microservices-network
+    environment:
+      - PORT=8082
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/microservices_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
+      - eureka.client.serviceUrl.defaultZone=http://eureka:8761/eureka/
+    restart: unless-stopped
+
   user-service:
     container_name: user-service
     build:
@@ -76,6 +118,20 @@ services:
       - SPRING_DATASOURCE_PASSWORD=changeme
       - eureka.client.serviceUrl.defaultZone=http://eureka:8761/eureka/
     restart: unless-stopped
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: microservices_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - microservices-network
 
   postgres:
     image: postgres:13
@@ -107,6 +163,7 @@ services:
 volumes:
   mongo_data:
   postgres_data:
+  mysql_data:
 
 networks:
   microservices-network:
