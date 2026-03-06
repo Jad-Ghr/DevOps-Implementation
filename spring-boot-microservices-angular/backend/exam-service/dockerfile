@@ -1,0 +1,15 @@
+# Build stage: Maven compilation with all dependencies
+FROM maven:3.9.4-eclipse-temurin-11 AS build
+WORKDIR /workspace
+COPY . ./
+RUN mvn -B -DskipTests -f common-service/pom.xml install \
+ && mvn -B -DskipTests -f common-exam/pom.xml install \
+ && mvn -B -DskipTests -f exam-service/pom.xml package
+
+# Runtime stage: Lightweight Alpine JRE
+FROM adoptopenjdk/openjdk11:jre-11.0.6_10-alpine
+WORKDIR /app
+COPY --from=build /workspace/exam-service/target/*.jar app.jar
+ENV PORT=8082
+EXPOSE 8082
+ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT} -jar app.jar"]
