@@ -7,6 +7,22 @@ pipeline {
 
     stages {
 
+        stage('Build Common Modules') {
+            steps {
+                dir("${PROJECT_DIR}/backend/common-exam") {
+                    sh 'mvn clean install -DskipTests'
+                }
+
+                dir("${PROJECT_DIR}/backend/common-service") {
+                    sh 'mvn clean install -DskipTests'
+                }
+
+                dir("${PROJECT_DIR}/backend/common-student") {
+                    sh 'mvn clean install -DskipTests'
+                }
+            }
+        }
+
         stage('Build answer Service') {
             steps {
                 dir("${PROJECT_DIR}/backend/answer-service") {
