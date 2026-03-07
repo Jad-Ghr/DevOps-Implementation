@@ -83,6 +83,16 @@ pipeline {
             }
         }
 
+        stage('Docker Cleanup') {
+            steps {
+                sh '''
+                docker stop $(docker ps -aq) || true
+                docker rm $(docker ps -aq) || true
+                '''
+            }
+        }
+
+
         stage('Docker Build') {
             steps {
                 sh 'docker compose build'
