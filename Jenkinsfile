@@ -7,9 +7,49 @@ pipeline {
 
     stages {
 
-        stage('Build Backend') {
+        stage('Build answer Service') {
             steps {
-                dir("${PROJECT_DIR}/backend") {
+                dir("${PROJECT_DIR}/backend/answer-service") {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build gateway Service') {
+            steps {
+                dir("${PROJECT_DIR}/backend/api-gateway-service") {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build course Service') {
+            steps {
+                dir("${PROJECT_DIR}/backend/course-service") {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build eureka Service') {
+            steps {
+                dir("${PROJECT_DIR}/backend/eureka-service") {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build exam Service') {
+            steps {
+                dir("${PROJECT_DIR}/backend/exam-service") {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build user Service') {
+            steps {
+                dir("${PROJECT_DIR}/backend/user-service") {
                     sh 'mvn clean package -DskipTests'
                 }
             }
@@ -35,7 +75,6 @@ pipeline {
                 sh 'docker compose up -d'
             }
         }
-
     }
 
     post {
