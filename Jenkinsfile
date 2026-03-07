@@ -89,9 +89,12 @@ pipeline {
             }
         }
 
-        stage('Run Containers') {
+        stage('Deploy Containers') {
             steps {
-                sh 'docker compose up -d'
+                sh '''
+                docker compose down --remove-orphans || true
+                docker compose up --build -d
+                '''
             }
         }
     }
