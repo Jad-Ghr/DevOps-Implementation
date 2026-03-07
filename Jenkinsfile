@@ -7,12 +7,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout Code') {
-            steps {
-                git 'https://github.com/Jad-Ghr/DevOps-Implementation.git'
-            }
-        }
-
         stage('Build Backend') {
             steps {
                 dir("${PROJECT_DIR}/backend") {
