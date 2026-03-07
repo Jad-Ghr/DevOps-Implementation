@@ -1,6 +1,9 @@
 pipeline {
     agent any
 
+    tools{
+        jdk 'JDK11'
+    }
     environment {
         PROJECT_DIR = "spring-boot-microservices-angular"
     }
