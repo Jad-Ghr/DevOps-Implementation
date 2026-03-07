@@ -26,6 +26,7 @@ pipeline {
             }
         }
 
+
         stage('Build answer Service') {
             steps {
                 dir("${PROJECT_DIR}/backend/answer-service") {
@@ -34,6 +35,18 @@ pipeline {
             }
         }
 
+        stage('Test answer Service') {
+            steps {
+                dir("${PROJECT_DIR}/backend/answer-service") {
+                    sh 'mvn test'
+                }
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
         stage('Build gateway Service') {
             steps {
                 dir("${PROJECT_DIR}/backend/api-gateway-service") {
