@@ -10,6 +10,7 @@ pipeline {
 
     stages {
 
+
         stage('Build Common Modules') {
             steps {
                 dir("${PROJECT_DIR}/backend/common-exam") {
@@ -31,19 +32,6 @@ pipeline {
             steps {
                 dir("${PROJECT_DIR}/backend/answer-service") {
                     sh 'mvn clean package -DskipTests'
-                }
-            }
-        }
-
-        stage('Test answer Service') {
-            steps {
-                dir("${PROJECT_DIR}/backend/answer-service") {
-                    sh 'mvn test'
-                }
-            }
-            post {
-                always {
-                    junit '**/target/surefire-reports/*.xml'
                 }
             }
         }
@@ -87,6 +75,19 @@ pipeline {
             }
         }
 
+        stage('Test answer Service') {
+            steps {
+                dir("${PROJECT_DIR}/backend/answer-service") {
+                    sh 'mvn test'
+                }
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+        
         stage('Build Frontend') {
             steps {
                 dir("${PROJECT_DIR}/frontend") {
