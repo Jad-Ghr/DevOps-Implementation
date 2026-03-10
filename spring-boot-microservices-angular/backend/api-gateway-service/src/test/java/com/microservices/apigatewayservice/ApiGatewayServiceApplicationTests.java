@@ -3,15 +3,15 @@ package com.microservices.apigatewayservice;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureWebTestClient
 @DisplayName("API Gateway Service Tests")
 class ApiGatewayServiceApplicationTests {
 
@@ -19,7 +19,7 @@ class ApiGatewayServiceApplicationTests {
 	private ApplicationContext applicationContext;
 
 	@Autowired
-	private MockMvc mockMvc;
+	private WebTestClient webTestClient;
 
 	@Test
 	@DisplayName("Context loads successfully")
@@ -28,14 +28,14 @@ class ApiGatewayServiceApplicationTests {
 	}
 
 	@Test
-	@DisplayName("MockMvc is autowired and available")
-	void testMockMvcAvailable() {
-		assertThat(mockMvc).isNotNull();
+	@DisplayName("WebTestClient is autowired and available")
+	void testWebTestClientAvailable() {
+		assertThat(webTestClient).isNotNull();
 	}
 
 	@Test
 	@DisplayName("Application configuration is loaded properly")
 	void testApplicationStartup() {
-		assertThat(mockMvc).isNotNull();
+		assertThat(applicationContext).isNotNull();
 	}
 }
