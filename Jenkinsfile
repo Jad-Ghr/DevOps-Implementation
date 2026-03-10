@@ -153,6 +153,15 @@ pipeline {
             }
         }
         
+        stage('Test Frontend') {
+            steps {
+                dir("${PROJECT_DIR}/frontend") {
+                    sh 'npm install'
+                    sh 'npm test -- --watch=false --browsers=ChromeHeadless'
+                }
+            }
+        }
+        
         stage('Build Frontend') {
             steps {
                 dir("${PROJECT_DIR}/frontend") {
@@ -162,6 +171,7 @@ pipeline {
             }
         }
 
+
         stage('Docker Cleanup') {
             steps {
                 sh '''
@@ -170,7 +180,6 @@ pipeline {
                 '''
             }
         }
-
 
         stage('Docker Build') {
             steps {
