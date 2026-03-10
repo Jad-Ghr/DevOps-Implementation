@@ -160,6 +160,11 @@ pipeline {
                     sh 'npm test -- --watch=false --browsers=ChromeHeadless'
                 }
             }
+            post {
+                always {
+                    junit '**/src/test-results/*.xml'
+                }
+            }
         }
         
         stage('Build Frontend') {
