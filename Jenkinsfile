@@ -163,7 +163,7 @@ pipeline {
             steps {
                 dir("${PROJECT_DIR}/frontend") {
                     sh 'npm install'
-                    sh 'npm test -- --watch=false --browsers=ChromeHeadless'
+                    sh 'npm test -- --watch=false --browsers=FirefoxHeadless'
                 }
             }
             post {
