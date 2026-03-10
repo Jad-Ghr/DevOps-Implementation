@@ -87,6 +87,71 @@ pipeline {
                 }
             }
         }
+
+        stage('Test gateway Service') {
+            steps {
+                dir("${PROJECT_DIR}/backend/api-gateway-service") {
+                    sh 'mvn test'
+                }
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Test course Service') {
+            steps {
+                dir("${PROJECT_DIR}/backend/course-service") {
+                    sh 'mvn test'
+                }
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Test eureka Service') {
+            steps {
+                dir("${PROJECT_DIR}/backend/eureka-service") {
+                    sh 'mvn test'
+                }
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Test exam Service') {
+            steps {
+                dir("${PROJECT_DIR}/backend/exam-service") {
+                    sh 'mvn test'
+                }
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Test user Service') {
+            steps {
+                dir("${PROJECT_DIR}/backend/user-service") {
+                    sh 'mvn test'
+                }
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
         
         stage('Build Frontend') {
             steps {
