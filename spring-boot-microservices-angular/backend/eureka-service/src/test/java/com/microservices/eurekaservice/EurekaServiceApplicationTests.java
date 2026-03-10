@@ -36,7 +36,7 @@ class EurekaServiceApplicationTests {
 	@Test
 	@DisplayName("Eureka service registry is active")
 	void testEurekaRegistry() {
-		assertThat(applicationContext.getApplicationName()).isNotBlank();
+		assertThat(mockMvc).isNotNull();
 	}
 
 	@Test

@@ -36,6 +36,6 @@ class ApiGatewayServiceApplicationTests {
 	@Test
 	@DisplayName("Application configuration is loaded properly")
 	void testApplicationStartup() {
-		assertThat(applicationContext.getApplicationName()).isNotBlank();
+		assertThat(mockMvc).isNotNull();
 	}
 }

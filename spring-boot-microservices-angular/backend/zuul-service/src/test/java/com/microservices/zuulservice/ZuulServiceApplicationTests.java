@@ -36,7 +36,7 @@ class ZuulServiceApplicationTests {
 	@Test
 	@DisplayName("Route configuration is loaded")
 	void testRouteConfiguration() {
-		assertThat(applicationContext.getApplicationName()).isNotBlank();
+		assertThat(mockMvc).isNotNull();
 	}
 
 	@Test

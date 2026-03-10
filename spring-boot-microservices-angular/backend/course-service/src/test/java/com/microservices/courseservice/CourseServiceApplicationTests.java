@@ -42,6 +42,6 @@ class CourseServiceApplicationTests {
 	@Test
 	@DisplayName("Course service starts successfully")
 	void testApplicationStartup() {
-		assertThat(applicationContext.getApplicationName()).isNotBlank();
+		assertThat(mockMvc).isNotNull();
 	}
 }

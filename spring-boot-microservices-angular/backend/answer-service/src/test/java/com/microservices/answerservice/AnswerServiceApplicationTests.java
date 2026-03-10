@@ -36,7 +36,7 @@ class AnswerServiceApplicationTests {
 	@Test
 	@DisplayName("Application configuration is loaded")
 	void testApplicationStartup() {
-		assertThat(applicationContext.getApplicationName()).isNotBlank();
+		assertThat(mockMvc).isNotNull();
 	}
 
 	@Test

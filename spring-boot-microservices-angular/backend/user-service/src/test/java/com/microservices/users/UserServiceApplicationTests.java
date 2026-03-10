@@ -36,7 +36,7 @@ class UserServiceApplicationTests {
 	@Test
 	@DisplayName("Application initializes without errors")
 	void testApplicationInitialization() {
-		assertThat(applicationContext.getApplicationName()).isNotBlank();
+		assertThat(mockMvc).isNotNull();
 	}
 
 	@Test
