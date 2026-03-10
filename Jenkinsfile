@@ -153,25 +153,6 @@ pipeline {
             }
         }
         
-        stage('Test Frontend') {
-            agent {
-                docker {
-                    image 'node:18-bullseye'
-                    args '-u root'
-                }
-            }
-            steps {
-                dir("${PROJECT_DIR}/frontend") {
-                    sh 'npm install'
-                    sh 'npm test -- --watch=false --browsers=FirefoxHeadless'
-                }
-            }
-            post {
-                always {
-                    junit '**/src/test-results/*.xml'
-                }
-            }
-        }
         
         stage('Build Frontend') {
             agent {
@@ -188,6 +169,26 @@ pipeline {
             }
         }
 
+        stage('Test Frontend') {
+            agent {
+                docker {
+                    image 'node:18-bullseye'
+                    args '-u root'
+                }
+            }
+            steps {
+                dir("${PROJECT_DIR}/frontend") {
+                    sh 'apt-get update && apt-get install -y firefox-esr'
+                    sh 'npm install'
+                    sh 'npm test -- --watch=false --browsers=FirefoxHeadless'
+                }
+            }
+            post {
+                always {
+                    junit '**/src/test-results/*.xml'
+                }
+            }
+        }
 
         stage('Docker Cleanup') {
             steps {
