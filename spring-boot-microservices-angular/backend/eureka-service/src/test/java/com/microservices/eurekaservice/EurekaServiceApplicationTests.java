@@ -28,7 +28,7 @@ class EurekaServiceApplicationTests {
 	}
 
 	@Test
-	@DisplayName("Eureka server is configured")
+	@DisplayName("Eureka server is properly configured")
 	void testEurekaServerConfiguration() {
 		assertThat(applicationContext).isNotNull();
 	}
@@ -36,7 +36,7 @@ class EurekaServiceApplicationTests {
 	@Test
 	@DisplayName("Eureka service registry is active")
 	void testEurekaRegistry() {
-		assertThat(applicationContext.getApplicationName()).isNotEmpty();
+		assertThat(applicationContext.getApplicationName()).isNotBlank();
 	}
 
 	@Test

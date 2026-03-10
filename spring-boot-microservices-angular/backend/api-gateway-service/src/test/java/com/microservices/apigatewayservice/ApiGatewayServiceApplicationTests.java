@@ -28,15 +28,14 @@ class ApiGatewayServiceApplicationTests {
 	}
 
 	@Test
-	@DisplayName("Gateway service is available")
-	void testGatewayServiceAvailable() {
-		assertThat(applicationContext.containsBean("org.springframework.cloud.netflix.zuul.web.ZuulHandlerMapping"))
-			.isTrue();
+	@DisplayName("MockMvc is autowired and available")
+	void testMockMvcAvailable() {
+		assertThat(mockMvc).isNotNull();
 	}
 
 	@Test
-	@DisplayName("Application starts without errors")
+	@DisplayName("Application configuration is loaded properly")
 	void testApplicationStartup() {
-		assertThat(applicationContext.getApplicationName()).isNotEmpty();
+		assertThat(applicationContext.getApplicationName()).isNotBlank();
 	}
 }

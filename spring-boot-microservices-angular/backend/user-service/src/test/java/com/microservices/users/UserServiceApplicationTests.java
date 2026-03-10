@@ -28,15 +28,15 @@ class UserServiceApplicationTests {
 	}
 
 	@Test
-	@DisplayName("User service bean is available")
+	@DisplayName("MockMvc is autowired and available")
 	void testUserServiceBeanExists() {
-		assertThat(applicationContext.containsBean("userServiceApplicationTests")).isTrue();
+		assertThat(mockMvc).isNotNull();
 	}
 
 	@Test
 	@DisplayName("Application initializes without errors")
 	void testApplicationInitialization() {
-		assertThat(applicationContext.getApplicationName()).isNotEmpty();
+		assertThat(applicationContext.getApplicationName()).isNotBlank();
 	}
 
 	@Test

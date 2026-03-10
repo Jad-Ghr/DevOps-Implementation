@@ -28,15 +28,15 @@ class AnswerServiceApplicationTests {
 	}
 
 	@Test
-	@DisplayName("Answer service bean is created")
+	@DisplayName("Answer service application exists")
 	void testAnswerServiceBeanExists() {
-		assertThat(applicationContext.containsBean("answerServiceApplicationTests")).isTrue();
+		assertThat(applicationContext.containsBean("answerServiceApplication")).isTrue();
 	}
 
 	@Test
-	@DisplayName("Application starts successfully")
+	@DisplayName("Application configuration is loaded")
 	void testApplicationStartup() {
-		assertThat(applicationContext.getApplicationName()).isNotEmpty();
+		assertThat(applicationContext.getApplicationName()).isNotBlank();
 	}
 
 	@Test

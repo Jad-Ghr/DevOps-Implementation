@@ -28,7 +28,7 @@ class ZuulServiceApplicationTests {
 	}
 
 	@Test
-	@DisplayName("Zuul proxy is configured")
+	@DisplayName("Zuul proxy is properly configured")
 	void testZuulProxyConfiguration() {
 		assertThat(applicationContext).isNotNull();
 	}
@@ -36,7 +36,7 @@ class ZuulServiceApplicationTests {
 	@Test
 	@DisplayName("Route configuration is loaded")
 	void testRouteConfiguration() {
-		assertThat(applicationContext.getApplicationName()).isNotEmpty();
+		assertThat(applicationContext.getApplicationName()).isNotBlank();
 	}
 
 	@Test
