@@ -26,7 +26,7 @@ describe('ExamFormComponent', () => {
       ],
       providers: [
         { provide: MatDialogRef, useValue: {} },
-        { provide: MAT_DIALOG_DATA, useValue: {} }
+        { provide: MAT_DIALOG_DATA, useValue: { data: {}, subjects: [] } }
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })
