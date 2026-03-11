@@ -153,22 +153,6 @@ pipeline {
             }
         }
         
-        
-        stage('Build Frontend') {
-            agent {
-                docker {
-                    image 'node:18-bullseye'
-                    args '-u root'
-                }
-            }
-            steps {
-                dir("${PROJECT_DIR}/frontend") {
-                    sh 'npm install'
-                    sh 'npm run build'
-                }
-            }
-        }
-
         stage('Test Frontend') {
             agent {
                 docker {
@@ -189,6 +173,22 @@ pipeline {
                 }
             }
         }
+        
+        stage('Build Frontend') {
+            agent {
+                docker {
+                    image 'node:18-bullseye'
+                    args '-u root'
+                }
+            }
+            steps {
+                dir("${PROJECT_DIR}/frontend") {
+                    sh 'npm install'
+                    sh 'npm run build'
+                }
+            }
+        }
+
 
         stage('Docker Cleanup') {
             steps {
