@@ -30,7 +30,7 @@ export class ExamFormComponent implements OnInit {
   wasFormChanged = false;
   exam: Exam = new Exam();
   dataListSubjects: Subject[] = [];
-  selectedFood: string;
+  foodControl = new FormControl('', Validators.required);
   selectedFoodModel: string;
   foods: Food[] = [
     {value: 'steak-0', viewValue: 'Steak'},
