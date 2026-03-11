@@ -164,12 +164,13 @@ pipeline {
                 dir("${PROJECT_DIR}/frontend") {
                     sh 'apt-get update && apt-get install -y firefox-esr'
                     sh 'npm install'
-                    sh 'npm test -- --watch=false --browsers=FirefoxHeadless'
+                    sh 'npm test -- --watch=false --browsers=FirefoxHeadless --reporters=progress,junit'
                 }
             }
             post {
                 always {
-                    junit '**/src/test-results/*.xml'
+                    // Karma outputs JUnit XML under front-end/test-results
+                    junit '**/test-results/*.xml'
                 }
             }
         }
