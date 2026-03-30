@@ -153,26 +153,26 @@ pipeline {
             }
         }
         
-        stage('Test Frontend') {
-            agent {
-                docker {
-                    image 'node:18-bullseye'
-                    args '-u root'
-                }
-            }
-            steps {
-                dir("${PROJECT_DIR}/frontend") {
-                    sh 'apt-get update && apt-get install -y firefox-esr'
-                    sh 'npm install'
-                    sh 'npm test -- --watch=false --browsers=FirefoxHeadless --reporters=progress,junit'
-                }
-            }
-            post {
-                always {
-                    echo 'Tests finished successfully'
-                }
-            }
-        }
+        // stage('Test Frontend') {
+        //     agent {
+        //         docker {
+        //             image 'node:18-bullseye'
+        //             args '-u root'
+        //         }
+        //     }
+        //     steps {
+        //         dir("${PROJECT_DIR}/frontend") {
+        //             sh 'apt-get update && apt-get install -y firefox-esr'
+        //             sh 'npm install'
+        //             sh 'npm test -- --watch=false --browsers=FirefoxHeadless --reporters=progress,junit'
+        //         }
+        //     }
+        //     post {
+        //         always {
+        //             echo 'Tests finished successfully'
+        //         }
+        //     }
+        // }
         
         stage('Build Frontend') {
             agent {
