@@ -76,6 +76,14 @@ pipeline {
         }
 
         stage('Test answer Service') {
+            when {
+                anyOf {
+                    changeset pattern: "${PROJECT_DIR}/backend/answer-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
+                }
+            }
             steps {
                 dir("${PROJECT_DIR}/backend/answer-service") {
                     sh 'mvn test'
@@ -89,6 +97,14 @@ pipeline {
         }
 
         stage('Test gateway Service') {
+            when {
+                anyOf {
+                    changeset pattern: "${PROJECT_DIR}/backend/api-gateway-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
+                }
+            }
             steps {
                 dir("${PROJECT_DIR}/backend/api-gateway-service") {
                     sh 'mvn test'
@@ -102,6 +118,14 @@ pipeline {
         }
 
         stage('Test course Service') {
+            when {
+                anyOf {
+                    changeset pattern: "${PROJECT_DIR}/backend/course-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
+                }
+            }
             steps {
                 dir("${PROJECT_DIR}/backend/course-service") {
                     sh 'mvn test'
@@ -115,6 +139,14 @@ pipeline {
         }
 
         stage('Test eureka Service') {
+            when {
+                anyOf {
+                    changeset pattern: "${PROJECT_DIR}/backend/eureka-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
+                }
+            }
             steps {
                 dir("${PROJECT_DIR}/backend/eureka-service") {
                     sh 'mvn test'
@@ -128,6 +160,14 @@ pipeline {
         }
 
         stage('Test exam Service') {
+            when {
+                anyOf {
+                    changeset pattern: "${PROJECT_DIR}/backend/exam-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
+                }
+            }
             steps {
                 dir("${PROJECT_DIR}/backend/exam-service") {
                     sh 'mvn test'
@@ -141,6 +181,14 @@ pipeline {
         }
 
         stage('Test user Service') {
+            when {
+                anyOf {
+                    changeset pattern: "${PROJECT_DIR}/backend/user-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
+                }
+            }
             steps {
                 dir("${PROJECT_DIR}/backend/user-service") {
                     sh 'mvn test'
@@ -154,6 +202,9 @@ pipeline {
         }
         
         stage('Test Frontend') {
+            when {
+                changeset pattern: "${PROJECT_DIR}/frontend/**", comparator: 'GLOB'
+            }
             agent {
                 docker {
                     image 'node:18-bullseye'
