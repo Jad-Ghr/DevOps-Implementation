@@ -239,7 +239,6 @@ pipeline {
                 }
             }
         }
-
         stage('SonarQube Analysis') {
             agent {
                 docker {
@@ -248,15 +247,17 @@ pipeline {
                 }
             }
             steps {
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    dir("${PROJECT_DIR}/backend/answer-service") {
-                        sh '''
-                        mvn clean verify sonar:sonar \
-                        -Dsonar.projectKey=answer-service \
-                        -Dsonar.projectName=answer-service \
-                        -Dsonar.host.url=http://localhost:9000 \
-                        -Dsonar.login=$SONAR_TOKEN
-                        '''
+                withSonarQubeEnv('SonarQube') {
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        dir("${PROJECT_DIR}/backend/answer-service") {
+                            sh '''
+                            mvn clean verify sonar:sonar \
+                            -Dsonar.projectKey=answer-service \
+                            -Dsonar.projectName=answer-service \
+                            -Dsonar.host.url=$SONAR_HOST_URL \
+                            -Dsonar.login=$SONAR_TOKEN
+                            '''
+                        }
                     }
                 }
             }
