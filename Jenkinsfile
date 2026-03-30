@@ -241,8 +241,11 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            tools {
-                jdk 'JDK17'
+            agent {
+                docker {
+                    image 'maven:3.9.8-eclipse-temurin-17'
+                    args '-u root'
+                }
             }
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
