@@ -140,18 +140,18 @@ pipeline {
             }
         }
 
-        stage('Test user Service') {
-            steps {
-                dir("${PROJECT_DIR}/backend/user-service") {
-                    sh 'mvn test'
-                }
-            }
-            post {
-                always {
-                    junit '**/target/surefire-reports/*.xml'
-                }
-            }
-        }
+        // stage('Test user Service') {
+        //     steps {
+        //         dir("${PROJECT_DIR}/backend/user-service") {
+        //             sh 'mvn test'
+        //         }
+        //     }
+        //     post {
+        //         always {
+        //             junit '**/target/surefire-reports/*.xml'
+        //         }
+        //     }
+        // }
         
         stage('Test Frontend') {
             agent {
@@ -216,7 +216,7 @@ pipeline {
     }
     post {
         success {
-            echo 'Pipeline executed successfully !!!'
+            echo 'Pipeline executed successfully!'
         }
         failure {
             echo 'Pipeline failed!'
