@@ -241,6 +241,9 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
+            tools {
+                jdk 'JDK17'
+            }
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     dir("${PROJECT_DIR}/backend/answer-service") {
