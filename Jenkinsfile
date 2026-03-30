@@ -242,12 +242,13 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
-                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    dir("${PROJECT_DIR}/backend/answer-service") {
                         sh '''
-                        mvn sonar:sonar \
+                        mvn clean verify sonar:sonar \
                         -Dsonar.projectKey=answer-service \
-                        -Dsonar.host.url=$SONAR_HOST_URL \
+                        -Dsonar.projectName=answer-service \
+                        -Dsonar.host.url=http://localhost:9000 \
                         -Dsonar.login=$SONAR_TOKEN
                         '''
                     }
