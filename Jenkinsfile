@@ -1,4 +1,4 @@
-pipeline {
+﻿pipeline {
     agent any
 
     tools {
@@ -10,9 +10,9 @@ pipeline {
         PR_TARGET_BRANCH = "develop"
         // Optional GitLab environment variables for automatic merge request creation
         // Configure these in Jenkins credentials if you want MR creation.
-        GITLAB_API_URL = credentials('gitlab-api-url')
-        GITLAB_PROJECT_ID = credentials('gitlab-project-id')
-        GITLAB_TOKEN = credentials('gitlab-token')
+        // GITLAB_API_URL = credentials('gitlab-api-url')
+        // GITLAB_PROJECT_ID = credentials('gitlab-project-id')
+        // GITLAB_TOKEN = credentials('gitlab-token')
         // SonarQube configuration
         SONAR_HOST_URL = 'http://localhost:9000'
         SONAR_LOGIN = credentials('sonar-token')  // Configure 'sonar-token' in Jenkins credentials
@@ -337,17 +337,18 @@ pipeline {
         success {
             script {
                 if (env.BRANCH_NAME?.startsWith('feature/') && env.FEATURE_SERVICE) {
-                    if (env.GITLAB_API_URL && env.GITLAB_PROJECT_ID && env.GITLAB_TOKEN) {
-                        sh '''
-                        curl -s -X POST "${GITLAB_API_URL}/projects/${GITLAB_PROJECT_ID}/merge_requests" \
-                          -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
-                          -d "source_branch=${BRANCH_NAME}" \
-                          -d "target_branch=${PR_TARGET_BRANCH}" \
-                          -d "title=Merge ${BRANCH_NAME} into ${PR_TARGET_BRANCH}"
-                        '''
-                    } else {
-                        echo 'Merge request creation skipped: missing GITLAB_API_URL, GITLAB_PROJECT_ID, or GITLAB_TOKEN.'
-                    }
+                    // GitLab MR creation commented out as credentials are not configured
+                    // if (env.GITLAB_API_URL && env.GITLAB_PROJECT_ID && env.GITLAB_TOKEN) {
+                    //     sh '''
+                    //     curl -s -X POST "${GITLAB_API_URL}/projects/${GITLAB_PROJECT_ID}/merge_requests" \
+                    //       -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+                    //       -d "source_branch=${BRANCH_NAME}" \
+                    //       -d "target_branch=${PR_TARGET_BRANCH}" \
+                    //       -d "title=Merge ${BRANCH_NAME} into ${PR_TARGET_BRANCH}"
+                    //     '''
+                    // } else {
+                        echo 'Merge request creation skipped: GitLab credentials not configured.'
+                    // }
                 } else {
                     echo 'Not a feature branch or no feature service identified, skipping merge request creation.'
                 }
