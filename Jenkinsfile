@@ -12,11 +12,14 @@
     environment {
         PROJECT_DIR = "spring-boot-microservices-angular"
         PR_TARGET_BRANCH = "develop"
-        # Optional GitLab environment variables for automatic merge request creation
-        # Configure these in Jenkins credentials if you want MR creation.
+        // Optional GitLab environment variables for automatic merge request creation
+        // Configure these in Jenkins credentials if you want MR creation.
         GITLAB_API_URL = credentials('gitlab-api-url')
         GITLAB_PROJECT_ID = credentials('gitlab-project-id')
         GITLAB_TOKEN = credentials('gitlab-token')
+        // SonarQube configuration
+        SONAR_HOST_URL = 'http://localhost:9000'
+        SONAR_LOGIN = credentials('sonar-token')  // Configure 'sonar-token' in Jenkins credentials
     }
 
     stages {
@@ -220,6 +223,29 @@
             post {
                 always {
                     junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            when {
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE.contains('backend/') }
+            }
+            steps {
+                script {
+                    if (env.FEATURE_SERVICE == '') {
+                        // Run for all backend services
+                        def services = ['answer-service', 'api-gateway-service', 'course-service', 'eureka-service', 'exam-service', 'user-service']
+                        services.each { service ->
+                            dir("${PROJECT_DIR}/backend/${service}") {
+                                sh "mvn clean verify sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN"
+                            }
+                        }
+                    } else {
+                        dir("${PROJECT_DIR}/${env.FEATURE_SERVICE}") {
+                            sh "mvn clean verify sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN"
+                        }
+                    }
                 }
             }
         }
