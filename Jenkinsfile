@@ -1,9 +1,5 @@
-pipeline {
+﻿pipeline {
     agent any
-
-    when {
-        branch 'feature/*'
-    }
 
     tools {
         jdk 'JDK11'
@@ -48,6 +44,17 @@ pipeline {
                     env.FEATURE_SERVICE = selectedService ?: ''
                     echo "Branch=${branchName}, FEATURE_SERVICE=${env.FEATURE_SERVICE ?: 'all services'}"
                 }
+            }
+        }
+
+        stage('Validate Feature Branch') {
+            when {
+                not {
+                    branch 'feature/*'
+                }
+            }
+            steps {
+                error 'This Jenkinsfile is intended to run only on feature/* branches.'
             }
         }
 
