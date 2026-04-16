@@ -1,6 +1,10 @@
 ﻿pipeline {
     agent any
 
+    when {
+        branch 'feature/*'
+    }
+
     tools {
         jdk 'JDK11'
     }
