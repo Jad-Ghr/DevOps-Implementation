@@ -1,233 +1,136 @@
-// Small helper predicates for cleaner `when { expression { ... } }` logic.
-// These are evaluated by Jenkins at runtime (when `env` is available).
-def isFeatureBranch = { -> return env.BRANCH_NAME?.startsWith('feature/') }
-def isReleaseBranch = { -> return env.BRANCH_NAME?.startsWith('release/') }
-def isMainBranch = { -> return env.BRANCH_NAME == 'main' }
-def isDevelopBranch = { -> return env.BRANCH_NAME == 'develop' }
-
-pipeline {
+﻿pipeline {
     agent any
 
-    tools{
+    tools {
         jdk 'JDK11'
     }
+
     environment {
         PROJECT_DIR = "spring-boot-microservices-angular"
-        // Use a per-workspace Maven repo to speed up dependency downloads across stages.
-        MAVEN_REPO_LOCAL = "${WORKSPACE}/.m2"
+        PR_TARGET_BRANCH = "develop"
+        # Optional GitLab environment variables for automatic merge request creation
+        # Configure these in Jenkins credentials if you want MR creation.
+        GITLAB_API_URL = credentials('gitlab-api-url')
+        GITLAB_PROJECT_ID = credentials('gitlab-project-id')
+        GITLAB_TOKEN = credentials('gitlab-token')
     }
 
     stages {
-
-
-        stage('Build Common Modules') {
-            when {
-                anyOf {
-                    allOf {
-                        expression { isFeatureBranch() }
-                        anyOf {
-                            // Feature branches build common libraries when any microservice changed
-                            changeset pattern: "${PROJECT_DIR}/backend/answer-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/api-gateway-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/course-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/eureka-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/exam-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/user-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
-                        }
-                    }
-                    not {
-                        expression { isFeatureBranch() }
-                    }
-                }
-            }
+        stage('Identify Feature Service') {
             steps {
-                dir("${PROJECT_DIR}/backend/common-exam") {
-                    sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} clean install -DskipTests'
-                }
+                script {
+                    def branchName = env.BRANCH_NAME ?: sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    def serviceMap = [
+                        answer: 'backend/answer-service',
+                        'api-gateway': 'backend/api-gateway-service',
+                        gateway: 'backend/api-gateway-service',
+                        course: 'backend/course-service',
+                        eureka: 'backend/eureka-service',
+                        exam: 'backend/exam-service',
+                        user: 'backend/user-service',
+                        frontend: 'frontend'
+                    ]
 
-                dir("${PROJECT_DIR}/backend/common-service") {
-                    sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} clean install -DskipTests'
-                }
+                    def selectedService = serviceMap.findResult { key, path ->
+                        if (branchName =~ /(^|[\\/_-])${key}([\\/_-]|$)/) {
+                            return path
+                        }
+                        return null
+                    }
 
-                dir("${PROJECT_DIR}/backend/common-student") {
-                    sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} clean install -DskipTests'
+                    env.FEATURE_SERVICE = selectedService ?: ''
+                    echo "Branch=${branchName}, FEATURE_SERVICE=${env.FEATURE_SERVICE ?: 'all services'}"
                 }
             }
         }
 
-        stage('Build Services Parallel') {
-            parallel {
-                stage('Answer Service') {
-                    when {
-                        anyOf {
-                            allOf {
-                                expression { isFeatureBranch() }
-                                anyOf {
-                                    changeset pattern: "${PROJECT_DIR}/backend/answer-service/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
-                                }
-                            }
-                            not {
-                                expression { isFeatureBranch() }
-                            }
-                        }
-                    }
-                    steps {
-                        dir("${PROJECT_DIR}/backend/answer-service") {
-                            sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} clean package -DskipTests'
-                        }
-                    }
+        stage('Build Common Modules') {
+            steps {
+                dir("${PROJECT_DIR}/backend/common-exam") {
+                    sh 'mvn clean install -DskipTests'
                 }
-
-                stage('Gateway Service') {
-                    when {
-                        anyOf {
-                            allOf {
-                                expression { isFeatureBranch() }
-                                anyOf {
-                                    changeset pattern: "${PROJECT_DIR}/backend/api-gateway-service/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
-                                }
-                            }
-                            not {
-                                expression { isFeatureBranch() }
-                            }
-                        }
-                    }
-                    steps {
-                        dir("${PROJECT_DIR}/backend/api-gateway-service") {
-                            sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} clean package -DskipTests'
-                        }
-                    }
+                dir("${PROJECT_DIR}/backend/common-service") {
+                    sh 'mvn clean install -DskipTests'
                 }
-
-                stage('Course Service') {
-                    when {
-                        anyOf {
-                            allOf {
-                                expression { isFeatureBranch() }
-                                anyOf {
-                                    changeset pattern: "${PROJECT_DIR}/backend/course-service/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
-                                }
-                            }
-                            not {
-                                expression { isFeatureBranch() }
-                            }
-                        }
-                    }
-                    steps {
-                        dir("${PROJECT_DIR}/backend/course-service") {
-                            sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} clean package -DskipTests'
-                        }
-                    }
+                dir("${PROJECT_DIR}/backend/common-student") {
+                    sh 'mvn clean install -DskipTests'
                 }
+            }
+        }
 
-                stage('Eureka Service') {
-                    when {
-                        anyOf {
-                            allOf {
-                                expression { isFeatureBranch() }
-                                anyOf {
-                                    changeset pattern: "${PROJECT_DIR}/backend/eureka-service/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
-                                }
-                            }
-                            not {
-                                expression { isFeatureBranch() }
-                            }
-                        }
-                    }
-                    steps {
-                        dir("${PROJECT_DIR}/backend/eureka-service") {
-                            sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} clean package -DskipTests'
-                        }
-                    }
+        stage('Build answer Service') {
+            when {
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE == 'backend/answer-service' }
+            }
+            steps {
+                dir("${PROJECT_DIR}/backend/answer-service") {
+                    sh 'mvn clean package -DskipTests'
                 }
+            }
+        }
 
-                stage('Exam Service') {
-                    when {
-                        anyOf {
-                            allOf {
-                                expression { isFeatureBranch() }
-                                anyOf {
-                                    changeset pattern: "${PROJECT_DIR}/backend/exam-service/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
-                                }
-                            }
-                            not {
-                                expression { isFeatureBranch() }
-                            }
-                        }
-                    }
-                    steps {
-                        dir("${PROJECT_DIR}/backend/exam-service") {
-                            sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} clean package -DskipTests'
-                        }
-                    }
+        stage('Build gateway Service') {
+            when {
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE == 'backend/api-gateway-service' }
+            }
+            steps {
+                dir("${PROJECT_DIR}/backend/api-gateway-service") {
+                    sh 'mvn clean package -DskipTests'
                 }
+            }
+        }
 
-                stage('User Service') {
-                    when {
-                        anyOf {
-                            allOf {
-                                expression { isFeatureBranch() }
-                                anyOf {
-                                    changeset pattern: "${PROJECT_DIR}/backend/user-service/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
-                                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
-                                }
-                            }
-                            not {
-                                expression { isFeatureBranch() }
-                            }
-                        }
-                    }
-                    steps {
-                        dir("${PROJECT_DIR}/backend/user-service") {
-                            sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} clean package -DskipTests'
-                        }
-                    }
+        stage('Build course Service') {
+            when {
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE == 'backend/course-service' }
+            }
+            steps {
+                dir("${PROJECT_DIR}/backend/course-service") {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build eureka Service') {
+            when {
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE == 'backend/eureka-service' }
+            }
+            steps {
+                dir("${PROJECT_DIR}/backend/eureka-service") {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build exam Service') {
+            when {
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE == 'backend/exam-service' }
+            }
+            steps {
+                dir("${PROJECT_DIR}/backend/exam-service") {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build user Service') {
+            when {
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE == 'backend/user-service' }
+            }
+            steps {
+                dir("${PROJECT_DIR}/backend/user-service") {
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
 
         stage('Test answer Service') {
             when {
-                anyOf {
-                    // On feature branches, run only if impacted files changed
-                    allOf {
-                        expression { isFeatureBranch() }
-                        anyOf {
-                            changeset pattern: "${PROJECT_DIR}/backend/answer-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
-                        }
-                    }
-                    // On non-feature branches (develop, release, main...), always run
-                    not {
-                        expression { isFeatureBranch() }
-                    }
-                }
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE == 'backend/answer-service' }
             }
             steps {
                 dir("${PROJECT_DIR}/backend/answer-service") {
-                    sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} test'
+                    sh 'mvn test'
                 }
             }
             post {
@@ -239,24 +142,11 @@ pipeline {
 
         stage('Test gateway Service') {
             when {
-                anyOf {
-                    allOf {
-                        expression { isFeatureBranch() }
-                        anyOf {
-                            changeset pattern: "${PROJECT_DIR}/backend/api-gateway-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
-                        }
-                    }
-                    not {
-                        expression { isFeatureBranch() }
-                    }
-                }
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE == 'backend/api-gateway-service' }
             }
             steps {
                 dir("${PROJECT_DIR}/backend/api-gateway-service") {
-                    sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} test'
+                    sh 'mvn test'
                 }
             }
             post {
@@ -268,24 +158,11 @@ pipeline {
 
         stage('Test course Service') {
             when {
-                anyOf {
-                    allOf {
-                        expression { isFeatureBranch() }
-                        anyOf {
-                            changeset pattern: "${PROJECT_DIR}/backend/course-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
-                        }
-                    }
-                    not {
-                        expression { isFeatureBranch() }
-                    }
-                }
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE == 'backend/course-service' }
             }
             steps {
                 dir("${PROJECT_DIR}/backend/course-service") {
-                    sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} test'
+                    sh 'mvn test'
                 }
             }
             post {
@@ -297,24 +174,11 @@ pipeline {
 
         stage('Test eureka Service') {
             when {
-                anyOf {
-                    allOf {
-                        expression { isFeatureBranch() }
-                        anyOf {
-                            changeset pattern: "${PROJECT_DIR}/backend/eureka-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
-                        }
-                    }
-                    not {
-                        expression { isFeatureBranch() }
-                    }
-                }
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE == 'backend/eureka-service' }
             }
             steps {
                 dir("${PROJECT_DIR}/backend/eureka-service") {
-                    sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} test'
+                    sh 'mvn test'
                 }
             }
             post {
@@ -326,24 +190,11 @@ pipeline {
 
         stage('Test exam Service') {
             when {
-                anyOf {
-                    allOf {
-                        expression { isFeatureBranch() }
-                        anyOf {
-                            changeset pattern: "${PROJECT_DIR}/backend/exam-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
-                        }
-                    }
-                    not {
-                        expression { isFeatureBranch() }
-                    }
-                }
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE == 'backend/exam-service' }
             }
             steps {
                 dir("${PROJECT_DIR}/backend/exam-service") {
-                    sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} test'
+                    sh 'mvn test'
                 }
             }
             post {
@@ -355,24 +206,11 @@ pipeline {
 
         stage('Test user Service') {
             when {
-                anyOf {
-                    allOf {
-                        expression { isFeatureBranch() }
-                        anyOf {
-                            changeset pattern: "${PROJECT_DIR}/backend/user-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
-                            changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
-                        }
-                    }
-                    not {
-                        expression { isFeatureBranch() }
-                    }
-                }
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE == 'backend/user-service' }
             }
             steps {
                 dir("${PROJECT_DIR}/backend/user-service") {
-                    sh 'mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} test'
+                    sh 'mvn test'
                 }
             }
             post {
@@ -381,18 +219,10 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Test Frontend') {
             when {
-                anyOf {
-                    allOf {
-                        expression { isFeatureBranch() }
-                        changeset pattern: "${PROJECT_DIR}/frontend/**", comparator: 'GLOB'
-                    }
-                    not {
-                        expression { isFeatureBranch() }
-                    }
-                }
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE == 'frontend' }
             }
             agent {
                 docker {
@@ -409,22 +239,14 @@ pipeline {
             }
             post {
                 always {
-                    echo 'Tests finished successfully'
+                    echo 'Frontend tests finished'
                 }
             }
         }
 
         stage('Build Frontend') {
             when {
-                anyOf {
-                    allOf {
-                        expression { isFeatureBranch() }
-                        changeset pattern: "${PROJECT_DIR}/frontend/**", comparator: 'GLOB'
-                    }
-                    not {
-                        expression { isFeatureBranch() }
-                    }
-                }
+                expression { env.FEATURE_SERVICE == '' || env.FEATURE_SERVICE == 'frontend' }
             }
             agent {
                 docker {
@@ -440,152 +262,30 @@ pipeline {
             }
         }
 
-        stage('Auto Merge Feature → Develop') {
-            when {
-                allOf {
-                    expression { isFeatureBranch() }
-                    anyOf {
-                        changeset pattern: "${PROJECT_DIR}/backend/**", comparator: 'GLOB'
-                        changeset pattern: "${PROJECT_DIR}/frontend/**", comparator: 'GLOB'
-                    }
-                }
-            }
-            // Run merge only after all prior stages succeed (stage is placed last for feature branches)
-            // and only in stage `post { success }` to avoid accidental merges.
-            steps {
-                echo 'Auto-merge will run after pipeline succeeds'
-            }
-            post {
-                success {
-                    script {
-                        if (currentBuild.currentResult == 'SUCCESS') {
-                            sh '''
-                            git config user.email "jenkins@local"
-                            git config user.name "jenkins"
-
-                            git fetch origin --prune
-                            git checkout -B develop origin/develop
-
-                            # If a conflict happens, make the build fail (no partial merges).
-                            git merge origin/${BRANCH_NAME} --no-ff -m "Auto merge feature" || {
-                              echo "Merge failed (likely conflicts). Aborting auto-merge."
-                              git merge --abort || true
-                              exit 1
-                            }
-
-                            git push origin develop
-                            '''
-                        } else {
-                            echo "Skipping merge because build result is: ${currentBuild.currentResult}"
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            when {
-                anyOf {
-                    expression { isDevelopBranch() }
-                    expression { isReleaseBranch() }
-                    branch 'main'
-                }
-            }
-            agent {
-                docker {
-                    image 'maven:3.9.8-eclipse-temurin-17'
-                    args '-u root'
-                }
-            }
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                        script {
-                            // Scan all microservices (not only answer-service).
-                            def services = [
-                                'answer-service',
-                                'api-gateway-service',
-                                'course-service',
-                                'eureka-service',
-                                'exam-service',
-                                'user-service'
-                            ]
-
-                            services.each { svc ->
-                                dir("${PROJECT_DIR}/backend/${svc}") {
-                                    sh """
-                                    mvn -Dmaven.repo.local=${env.MAVEN_REPO_LOCAL} verify sonar:sonar -DskipTests \
-                                      -Dsonar.projectKey=${svc} \
-                                      -Dsonar.projectName=${svc} \
-                                      -Dsonar.host.url=${env.SONAR_HOST_URL} \
-                                      -Dsonar.login=${env.SONAR_TOKEN}
-                                    """
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Quality Gate') {
-            when {
-                anyOf {
-                    expression { isDevelopBranch() }
-                    expression { isReleaseBranch() }
-                    branch 'main'
-                }
-            }
-            steps {
-                timeout(time: 2, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
-        
         stage('Docker Cleanup') {
             when {
-                branch 'main'
+                expression { env.FEATURE_SERVICE == '' }
             }
             steps {
                 sh '''
-                # Scope cleanup to the compose stack (do NOT kill all containers on this Jenkins machine).
-                docker compose down --remove-orphans || true
+                docker stop $(docker ps -aq) || true
+                docker rm $(docker ps -aq) || true
                 '''
             }
         }
 
         stage('Docker Build') {
             when {
-                anyOf {
-                    branch 'main'
-                    expression { isReleaseBranch() }
-                }
+                expression { env.FEATURE_SERVICE == '' }
             }
             steps {
                 sh 'docker compose build'
             }
         }
 
-        stage('Deploy to Staging') {
-            when {
-                expression { isReleaseBranch() }
-            }
-            steps {
-                sh '''
-                if [ -f docker-compose.staging.yml ]; then
-                    docker compose -f docker-compose.staging.yml down --remove-orphans || true
-                    docker compose -f docker-compose.staging.yml up -d
-                else
-                    echo "docker-compose.staging.yml not found; skipping staging deploy"
-                fi
-                '''
-            }
-        }
-
         stage('Deploy Containers') {
             when {
-                branch 'main'
+                expression { env.FEATURE_SERVICE == '' }
             }
             steps {
                 sh '''
@@ -595,9 +295,26 @@ pipeline {
             }
         }
     }
+
     post {
         success {
-            echo 'Pipeline executed successfully!!'
+            script {
+                if (env.BRANCH_NAME?.startsWith('feature/') && env.FEATURE_SERVICE) {
+                    if (env.GITLAB_API_URL && env.GITLAB_PROJECT_ID && env.GITLAB_TOKEN) {
+                        sh '''
+                        curl -s -X POST "${GITLAB_API_URL}/projects/${GITLAB_PROJECT_ID}/merge_requests" \
+                          -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+                          -d "source_branch=${BRANCH_NAME}" \
+                          -d "target_branch=${PR_TARGET_BRANCH}" \
+                          -d "title=Merge ${BRANCH_NAME} into ${PR_TARGET_BRANCH}"
+                        '''
+                    } else {
+                        echo 'Merge request creation skipped: missing GITLAB_API_URL, GITLAB_PROJECT_ID, or GITLAB_TOKEN.'
+                    }
+                } else {
+                    echo 'Not a feature branch or no feature service identified, skipping merge request creation.'
+                }
+            }
         }
         failure {
             echo 'Pipeline failed!'
