@@ -25,7 +25,7 @@ import com.microservices.courseservice.models.entity.Course;
 import com.microservices.courseservice.models.entity.CourseStudent;
 import com.microservices.courseservice.services.CourseService;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 @RequestMapping("courses")
 @RestController
