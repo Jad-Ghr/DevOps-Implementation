@@ -1,8 +1,8 @@
-pipeline {
+﻿pipeline {
     agent any
 
     tools {
-        jdk 'JDK11'
+        jdk 'JDK17'
     }
 
     environment {
@@ -24,7 +24,7 @@ pipeline {
                 script {
                     def branchName = env.BRANCH_NAME ?: sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                     def serviceMap = [
-                        answer: 'backend/answer-service',
+                        answer: 'backend/answer-service',   
                         'api-gateway': 'backend/api-gateway-service',
                         gateway: 'backend/api-gateway-service',
                         course: 'backend/course-service',
@@ -234,12 +234,12 @@ pipeline {
                         def services = ['answer-service', 'api-gateway-service', 'course-service', 'eureka-service', 'exam-service', 'user-service']
                         services.each { service ->
                             dir("${PROJECT_DIR}/backend/${service}") {
-                                sh "mvn clean verify sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN"
+                                sh 'mvn clean verify sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN'
                             }
                         }
                     } else {
                         dir("${PROJECT_DIR}/${env.FEATURE_SERVICE}") {
-                            sh "mvn clean verify sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN"
+                            sh 'mvn clean verify sonar:sonar -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN'
                         }
                     }
                 }
