@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.microservices</groupId>
 	<artifactId>course-service</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>course-service</name>
 	<description>Project for Spring Boot Course Service</description>
 	<properties>
@@ -22,17 +22,17 @@
 		<dependency>
 			<groupId>com.microservices</groupId>
 			<artifactId>common-exam</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.microservices</groupId>
 			<artifactId>common-service</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.microservices</groupId>
 			<artifactId>common-student</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.0.0</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-feign -->
