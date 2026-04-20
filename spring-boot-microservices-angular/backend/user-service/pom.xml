@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.microservices.users</groupId>
 	<artifactId>user-service</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>user-service</name>
 	<description>Project for Spring Boot user service</description>
 	<properties>
@@ -21,12 +21,12 @@
 		<dependency>
 			<groupId>com.microservices</groupId>
 			<artifactId>common-service</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.microservices</groupId>
 			<artifactId>common-student</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.0.0</version>
 		</dependency>
 
 		<dependency>
