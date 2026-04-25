@@ -7,7 +7,7 @@ pipeline {
     environment {
         PROJECT_DIR = "spring-boot-microservices-angular"
         SONAR_HOST_URL = "http://localhost:9000"
-        SONAR_LOGIN = "squ_e8f8b5d5f6e4c3b2a1f9e8d7c6b5a4f3"
+        SONAR_LOGIN = "sqa_c89a3be8cf3b712f4b8ea4c905fafc9e0ee2c5b1"
     }
 
     stages {
