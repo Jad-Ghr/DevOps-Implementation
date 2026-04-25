@@ -1,9 +1,15 @@
+FROM maven:3.9.4-eclipse-temurin-11 AS build
+
+WORKDIR /workspace
+
+COPY . ./
+RUN mvn -B -DskipTests -f common-service/pom.xml install \
+ && mvn -B -DskipTests -f common-exam/pom.xml install \
+ && mvn -B -DskipTests -f common-student/pom.xml install \
+ && mvn -B -DskipTests -f answer-service/pom.xml package
+
 FROM adoptopenjdk/openjdk11:jre-11.0.6_10-alpine
-
 WORKDIR /app
-
-COPY ./target/answer-service-0.0.1-SNAPSHOT.jar .
-
+COPY --from=build /workspace/answer-service/target/*.jar app.jar
 EXPOSE 8083
-
-ENTRYPOINT ["java", "-jar", "answer-service-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["sh", "-c", "java -jar app.jar"]
