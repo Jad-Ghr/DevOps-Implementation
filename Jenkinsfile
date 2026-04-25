@@ -445,7 +445,20 @@ pipeline {
                         # Check if kubectl is available
                         if ! command -v kubectl &> /dev/null; then
                             echo "kubectl not found. Skipping Kubernetes deployment."
-                            echo "To enable Kubernetes deployment, install kubectl and configure access to your cluster."
+                            echo "To enable Kubernetes deployment:"
+                            echo "1. Install kubectl: curl -LO https://dl.k8s.io/release/stable.txt"
+                            echo "2. Set up a Kubernetes cluster (Minikube, Kind, or cloud)"
+                            echo "3. Configure kubeconfig for cluster access"
+                            echo "4. For local testing: install Minikube and run 'minikube start'"
+                            exit 0
+                        fi
+                        
+                        # Check if cluster is accessible
+                        if ! kubectl cluster-info &> /dev/null; then
+                            echo "Kubernetes cluster not accessible. Skipping deployment."
+                            echo "Ensure your kubeconfig is properly configured."
+                            echo "For Minikube: minikube start"
+                            echo "For other clusters: check kubeconfig and network access"
                             exit 0
                         fi
                         
@@ -488,13 +501,23 @@ pipeline {
                         kubectl wait --for=condition=available --timeout=300s deployment/exam-service -n microservices || echo "Exam service not ready, continuing..."
                         kubectl wait --for=condition=available --timeout=300s deployment/user-service -n microservices || echo "User service not ready, continuing..."
                         kubectl wait --for=condition=available --timeout=300s deployment/frontend -n microservices || echo "Frontend not ready, continuing..."
+                        
+                        echo "Kubernetes deployment completed successfully!"
+                        echo "Get service URLs:"
+                        echo "kubectl get services -n microservices"
+                        echo ""
+                        echo "Access your application:"
+                        echo "- Frontend: kubectl get svc frontend -n microservices -o jsonpath='{.status.loadBalancer.ingress[0].*}'"
+                        echo "- Gateway: kubectl get svc gateway -n microservices -o jsonpath='{.status.loadBalancer.ingress[0].*}'"
                         '''
                     } catch (Exception e) {
-                        echo "Kubernetes deployment failed or kubectl not configured. Error: ${e.getMessage()}"
-                        echo "To enable Kubernetes deployment:"
-                        echo "1. Install kubectl"
-                        echo "2. Configure access to your Kubernetes cluster"
-                        echo "3. Ensure Docker images are pushed to registry"
+                        echo "Kubernetes deployment failed. Error: ${e.getMessage()}"
+                        echo "To troubleshoot:"
+                        echo "1. Check kubectl installation: kubectl version --client"
+                        echo "2. Check cluster access: kubectl cluster-info"
+                        echo "3. Check kubeconfig: kubectl config view"
+                        echo "4. For Minikube: minikube status"
+                        echo "5. Check pod status: kubectl get pods -n microservices"
                     }
                 }
             }
