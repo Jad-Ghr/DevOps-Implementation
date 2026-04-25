@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: answer-service
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: answer-service
+  template:
+    metadata:
+      labels:
+        app: answer-service
+    spec:
+      containers:
+      - name: answer-service
+        image: answer-service:latest
+        ports:
+        - containerPort: 8083
+        env:
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: "http://eureka:8761/eureka/"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: answer-service
+  namespace: microservices
+spec:
+  selector:
+    app: answer-service
+  ports:
+  - port: 8083
+    targetPort: 8083
+  type: ClusterIP

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exam-service
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exam-service
+  template:
+    metadata:
+      labels:
+        app: exam-service
+    spec:
+      containers:
+      - name: exam-service
+        image: exam-service:latest
+        ports:
+        - containerPort: 8082
+        env:
+        - name: PORT
+          value: "8082"
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://mysql:3306/microservices_db"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "root"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "password"
+        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          value: "http://eureka:8761/eureka/"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: exam-service
+  namespace: microservices
+spec:
+  selector:
+    app: exam-service
+  ports:
+  - port: 8082
+    targetPort: 8082
+  type: ClusterIP

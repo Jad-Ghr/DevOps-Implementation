@@ -8,6 +8,9 @@ pipeline {
         PROJECT_DIR = "spring-boot-microservices-angular"
         SONAR_HOST_URL = "http://localhost:9000"
         SONAR_LOGIN = "sqa_c89a3be8cf3b712f4b8ea4c905fafc9e0ee2c5b1"
+        DOCKER_REGISTRY = "your-dockerhub-username"
+        DOCKER_USERNAME = credentials('docker-username')
+        DOCKER_PASSWORD = credentials('docker-password')
     }
 
     stages {
@@ -407,6 +410,88 @@ pipeline {
                 sh '''
                 docker compose down --remove-orphans || true
                 docker compose up --build -d
+                '''
+            }
+        }
+
+        stage('Docker Image Push') {
+            steps {
+                script {
+                    // Login to Docker registry
+                    sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
+                    
+                    // Tag and push images to Docker registry
+                    def services = ['eureka-service', 'api-gateway-service', 'answer-service', 'course-service', 'exam-service', 'user-service', 'angular-app']
+                    services.each { service ->
+                        sh "docker tag ${service}:latest ${DOCKER_REGISTRY}/${service}:latest"
+                        sh "docker push ${DOCKER_REGISTRY}/${service}:latest"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh '''
+                # Create namespace
+                kubectl create namespace microservices --dry-run=client -o yaml | kubectl apply -f -
+                
+                # Update image references in YAML files
+                sed -i "s|image: eureka-service:latest|image: ${DOCKER_REGISTRY}/eureka-service:latest|g" k8s/eureka.yaml
+                sed -i "s|image: api-gateway-service:latest|image: ${DOCKER_REGISTRY}/api-gateway-service:latest|g" k8s/gateway.yaml
+                sed -i "s|image: answer-service:latest|image: ${DOCKER_REGISTRY}/answer-service:latest|g" k8s/answer-service.yaml
+                sed -i "s|image: course-service:latest|image: ${DOCKER_REGISTRY}/course-service:latest|g" k8s/course-service.yaml
+                sed -i "s|image: exam-service:latest|image: ${DOCKER_REGISTRY}/exam-service:latest|g" k8s/exam-service.yaml
+                sed -i "s|image: user-service:latest|image: ${DOCKER_REGISTRY}/user-service:latest|g" k8s/user-service.yaml
+                sed -i "s|image: angular-app:latest|image: ${DOCKER_REGISTRY}/angular-app:latest|g" k8s/frontend.yaml
+                
+                # Deploy databases
+                kubectl apply -f k8s/mysql.yaml
+                kubectl apply -f k8s/postgres.yaml
+                kubectl apply -f k8s/mongodb.yaml
+                
+                # Wait for databases to be ready
+                kubectl wait --for=condition=available --timeout=300s deployment/mysql -n microservices
+                kubectl wait --for=condition=available --timeout=300s deployment/postgres -n microservices
+                kubectl wait --for=condition=available --timeout=300s deployment/mongodb -n microservices
+                
+                # Deploy microservices
+                kubectl apply -f k8s/eureka.yaml
+                kubectl apply -f k8s/gateway.yaml
+                kubectl apply -f k8s/answer-service.yaml
+                kubectl apply -f k8s/course-service.yaml
+                kubectl apply -f k8s/exam-service.yaml
+                kubectl apply -f k8s/user-service.yaml
+                kubectl apply -f k8s/frontend.yaml
+                
+                # Wait for deployments to be ready
+                kubectl wait --for=condition=available --timeout=300s deployment/eureka -n microservices
+                kubectl wait --for=condition=available --timeout=300s deployment/gateway -n microservices
+                kubectl wait --for=condition=available --timeout=300s deployment/answer-service -n microservices
+                kubectl wait --for=condition=available --timeout=300s deployment/course-service -n microservices
+                kubectl wait --for=condition=available --timeout=300s deployment/exam-service -n microservices
+                kubectl wait --for=condition=available --timeout=300s deployment/user-service -n microservices
+                kubectl wait --for=condition=available --timeout=300s deployment/frontend -n microservices
+                '''
+            }
+        }
+
+        stage('Setup Monitoring') {
+            steps {
+                sh '''
+                # Create monitoring namespace
+                kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+                
+                # Deploy monitoring stack
+                kubectl apply -f k8s/monitoring.yaml
+                
+                # Wait for monitoring to be ready
+                kubectl wait --for=condition=available --timeout=300s deployment/prometheus -n monitoring
+                kubectl wait --for=condition=available --timeout=300s deployment/grafana -n monitoring
+                
+                echo "Monitoring setup complete!"
+                echo "Prometheus: http://<load-balancer-ip>:9090"
+                echo "Grafana: http://<load-balancer-ip>:3000 (admin/admin)"
                 '''
             }
         }
