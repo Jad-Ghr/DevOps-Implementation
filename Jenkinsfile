@@ -397,11 +397,11 @@ pipeline {
             }
         }
 
-        // stage('Docker Build') {
-        //     steps {
-        //         sh 'docker compose build'
-        //     }
-        // }
+        stage('Docker Build') {
+            steps {
+                sh 'docker compose build'
+            }
+        }
 
         stage('Deploy Containers') {
             steps {
