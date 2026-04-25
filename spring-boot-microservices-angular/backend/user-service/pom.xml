@@ -15,7 +15,7 @@
 	<description>Project for Spring Boot user service</description>
 	<properties>
 		<java.version>11</java.version>
-		<spring-cloud.version>2023.0.0</spring-cloud.version>
+		<spring-cloud.version>2021.0.8</spring-cloud.version>
 		<lombok.version>1.18.30</lombok.version>
 	</properties>
 	<dependencies>
