@@ -4,7 +4,7 @@ package com.microservices.users.controllers;
 import java.io.IOException;
 import java.util.List;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
