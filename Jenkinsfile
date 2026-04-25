@@ -1,4 +1,4 @@
-﻿// Small helper predicates for cleaner `when { expression { ... } }` logic.
+// Small helper predicates for cleaner `when { expression { ... } }` logic.
 // These are evaluated by Jenkins at runtime (when `env` is available).
 def isFeatureBranch = { -> return env.BRANCH_NAME?.startsWith('feature/') }
 def isReleaseBranch = { -> return env.BRANCH_NAME?.startsWith('release/') }
