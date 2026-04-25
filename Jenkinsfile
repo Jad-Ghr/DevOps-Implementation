@@ -1,4 +1,4 @@
-// Small helper predicates for cleaner `when { expression { ... } }` logic.
+﻿// Small helper predicates for cleaner `when { expression { ... } }` logic.
 // These are evaluated by Jenkins at runtime (when `env` is available).
 def isFeatureBranch = { -> return env.BRANCH_NAME?.startsWith('feature/') }
 def isReleaseBranch = { -> return env.BRANCH_NAME?.startsWith('release/') }
@@ -8,7 +8,9 @@ pipeline {
     agent any
 
     tools{
-        jdk 'JDK21'
+        // Use the JDK installation configured in Jenkins global tools.
+        // Change this to JDK11 or JDK17 based on your Jenkins tool configuration.
+        jdk 'JDK11'
     }
     environment {
         PROJECT_DIR = "spring-boot-microservices-angular"
