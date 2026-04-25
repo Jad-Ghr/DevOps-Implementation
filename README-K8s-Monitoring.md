@@ -6,20 +6,20 @@ This project includes a complete CI/CD pipeline for Spring Boot microservices wi
 
 - Jenkins with JDK11 installed
 - Docker and Docker Compose
-- Kubernetes cluster (Minikube, EKS, AKS, etc.)
-- kubectl configured to access the cluster
-- Docker Hub account (or other registry)
+- Kubernetes cluster (Minikube, EKS, AKS, etc.) - **Optional**
+- kubectl configured to access the cluster - **Optional**
+- Docker Hub account (or other registry) - **Optional**
 
 ## Jenkins Setup
 
-### Credentials
-Add the following credentials in Jenkins:
+### Credentials (Optional - for Docker Push)
+Add the following credentials in Jenkins for Docker image push:
 - `docker-username`: Your Docker registry username
 - `docker-password`: Your Docker registry password
 
 ### Environment Variables
 Update the following in the Jenkinsfile:
-- `DOCKER_REGISTRY`: Your Docker registry (e.g., `your-dockerhub-username`)
+- `DOCKER_REGISTRY`: Your Docker registry (e.g., `your-dockerhub-username`) - only needed if pushing images
 
 ## Kubernetes Deployment
 
@@ -74,3 +74,10 @@ After deployment:
 - Configure persistent volumes according to your cluster's storage classes
 - Adjust resource limits and requests based on your requirements
 - For production, use secrets for database passwords and other sensitive data
+
+## Troubleshooting
+
+- **Pipeline fails on credentials**: Docker push and K8s stages are optional and will skip if credentials aren't configured
+- **kubectl not found**: Install kubectl or skip K8s deployment
+- **Image pull errors**: Ensure images are pushed to accessible registry
+- **Service not accessible**: Check LoadBalancer external IPs or use port forwarding
