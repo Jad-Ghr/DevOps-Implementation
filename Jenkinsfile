@@ -1,4 +1,4 @@
-pipeline {
+﻿pipeline {
     agent any
 
     tools{
@@ -6,6 +6,8 @@ pipeline {
     }
     environment {
         PROJECT_DIR = "spring-boot-microservices-angular"
+        SONAR_HOST_URL = "http://localhost:9000"
+        SONAR_LOGIN = "squ_e8f8b5d5f6e4c3b2a1f9e8d7c6b5a4f3"
     }
 
     stages {
@@ -197,6 +199,150 @@ pipeline {
             post {
                 always {
                     junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+        
+        stage('SonarQube Analysis - answer Service') {
+            when {
+                anyOf {
+                    changeset pattern: "${PROJECT_DIR}/backend/answer-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
+                }
+            }
+            steps {
+                dir("${PROJECT_DIR}/backend/answer-service") {
+                    sh '''
+                    mvn sonar:sonar \
+                      -Dsonar.projectKey=answer-service \
+                      -Dsonar.projectName="Answer Service" \
+                      -Dsonar.sources=src/main \
+                      -Dsonar.tests=src/test \
+                      -Dsonar.host.url=${SONAR_HOST_URL} \
+                      -Dsonar.login=${SONAR_LOGIN}
+                    '''
+                }
+            }
+        }
+        
+        stage('SonarQube Analysis - gateway Service') {
+            when {
+                anyOf {
+                    changeset pattern: "${PROJECT_DIR}/backend/api-gateway-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
+                }
+            }
+            steps {
+                dir("${PROJECT_DIR}/backend/api-gateway-service") {
+                    sh '''
+                    mvn sonar:sonar \
+                      -Dsonar.projectKey=api-gateway-service \
+                      -Dsonar.projectName="API Gateway Service" \
+                      -Dsonar.sources=src/main \
+                      -Dsonar.tests=src/test \
+                      -Dsonar.host.url=${SONAR_HOST_URL} \
+                      -Dsonar.login=${SONAR_LOGIN}
+                    '''
+                }
+            }
+        }
+        
+        stage('SonarQube Analysis - course Service') {
+            when {
+                anyOf {
+                    changeset pattern: "${PROJECT_DIR}/backend/course-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
+                }
+            }
+            steps {
+                dir("${PROJECT_DIR}/backend/course-service") {
+                    sh '''
+                    mvn sonar:sonar \
+                      -Dsonar.projectKey=course-service \
+                      -Dsonar.projectName="Course Service" \
+                      -Dsonar.sources=src/main \
+                      -Dsonar.tests=src/test \
+                      -Dsonar.host.url=${SONAR_HOST_URL} \
+                      -Dsonar.login=${SONAR_LOGIN}
+                    '''
+                }
+            }
+        }
+        
+        stage('SonarQube Analysis - eureka Service') {
+            when {
+                anyOf {
+                    changeset pattern: "${PROJECT_DIR}/backend/eureka-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
+                }
+            }
+            steps {
+                dir("${PROJECT_DIR}/backend/eureka-service") {
+                    sh '''
+                    mvn sonar:sonar \
+                      -Dsonar.projectKey=eureka-service \
+                      -Dsonar.projectName="Eureka Service" \
+                      -Dsonar.sources=src/main \
+                      -Dsonar.tests=src/test \
+                      -Dsonar.host.url=${SONAR_HOST_URL} \
+                      -Dsonar.login=${SONAR_LOGIN}
+                    '''
+                }
+            }
+        }
+        
+        stage('SonarQube Analysis - exam Service') {
+            when {
+                anyOf {
+                    changeset pattern: "${PROJECT_DIR}/backend/exam-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
+                }
+            }
+            steps {
+                dir("${PROJECT_DIR}/backend/exam-service") {
+                    sh '''
+                    mvn sonar:sonar \
+                      -Dsonar.projectKey=exam-service \
+                      -Dsonar.projectName="Exam Service" \
+                      -Dsonar.sources=src/main \
+                      -Dsonar.tests=src/test \
+                      -Dsonar.host.url=${SONAR_HOST_URL} \
+                      -Dsonar.login=${SONAR_LOGIN}
+                    '''
+                }
+            }
+        }
+        
+        stage('SonarQube Analysis - user Service') {
+            when {
+                anyOf {
+                    changeset pattern: "${PROJECT_DIR}/backend/user-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-service/**", comparator: 'GLOB'
+                    changeset pattern: "${PROJECT_DIR}/backend/common-student/**", comparator: 'GLOB'
+                }
+            }
+            steps {
+                dir("${PROJECT_DIR}/backend/user-service") {
+                    sh '''
+                    mvn sonar:sonar \
+                      -Dsonar.projectKey=user-service \
+                      -Dsonar.projectName="User Service" \
+                      -Dsonar.sources=src/main \
+                      -Dsonar.tests=src/test \
+                      -Dsonar.host.url=${SONAR_HOST_URL} \
+                      -Dsonar.login=${SONAR_LOGIN}
+                    '''
                 }
             }
         }
