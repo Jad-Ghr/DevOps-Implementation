@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
       - name: course-service
-        image: course-service:latest
+        image: microservices-devops-course-service:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 8081
         env:

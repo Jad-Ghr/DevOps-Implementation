@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
       - name: eureka
-        image: eureka-service:latest
+        image: microservices-devops-eureka:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 8761
         env:

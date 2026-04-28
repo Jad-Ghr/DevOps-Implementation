@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
       - name: answer-service
-        image: answer-service:latest
+        image: microservices-devops-answer:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 8083
         env:

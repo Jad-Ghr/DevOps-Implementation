@@ -81,6 +81,7 @@ spec:
   ports:
   - port: 9090
     targetPort: 9090
+    nodePort: 30183
   type: LoadBalancer
 ---
 apiVersion: apps/v1
@@ -137,4 +138,7 @@ spec:
   ports:
   - port: 3000
     targetPort: 3000
+    nodePort: 30165
   type: LoadBalancer
+
+

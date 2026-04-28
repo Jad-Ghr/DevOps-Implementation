@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: angular-app:latest
+        image: your-dockerhub-username/angular-app:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 8090
 ---
@@ -30,4 +31,5 @@ spec:
   ports:
   - port: 8090
     targetPort: 8090
+    nodePort: 31123
   type: LoadBalancer
