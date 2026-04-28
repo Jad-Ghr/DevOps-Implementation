@@ -10,6 +10,9 @@ pipeline {
         SONAR_LOGIN = "sqa_c89a3be8cf3b712f4b8ea4c905fafc9e0ee2c5b1"
         DOCKER_REGISTRY = "your-dockerhub-username"
         BRANCH_NAME = "${env.GIT_BRANCH ?: env.BRANCH_NAME ?: 'unknown'}"
+        CHANGE_ID = "${env.CHANGE_ID ?: ''}"
+        CHANGE_TARGET = "${env.CHANGE_TARGET ?: ''}"
+        CHANGE_BRANCH = "${env.CHANGE_BRANCH ?: ''}"
     }
 
     stages {
@@ -82,7 +85,11 @@ pipeline {
         stage('Test answer Service') {
             when {
                 allOf {
-                    branch pattern: "feature/.*", comparator: "REGEXP"
+                    anyOf {
+                        changeRequest()
+                        branch pattern: "feature/.*", comparator: "REGEXP"
+                        branch pattern: "release/.*", comparator: "REGEXP"
+                    }
                     anyOf {
                         changeset pattern: "${PROJECT_DIR}/backend/answer-service/**", comparator: 'GLOB'
                         changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
@@ -107,7 +114,11 @@ pipeline {
         stage('Test gateway Service') {
             when {
                 allOf {
-                    branch pattern: "feature/.*", comparator: "REGEXP"
+                    anyOf {
+                        changeRequest()
+                        branch pattern: "feature/.*", comparator: "REGEXP"
+                        branch pattern: "release/.*", comparator: "REGEXP"
+                    }
                     anyOf {
                         changeset pattern: "${PROJECT_DIR}/backend/api-gateway-service/**", comparator: 'GLOB'
                         changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
@@ -132,7 +143,11 @@ pipeline {
         stage('Test course Service') {
             when {
                 allOf {
-                    branch pattern: "feature/.*", comparator: "REGEXP"
+                    anyOf {
+                        changeRequest()
+                        branch pattern: "feature/.*", comparator: "REGEXP"
+                        branch pattern: "release/.*", comparator: "REGEXP"
+                    }
                     anyOf {
                         changeset pattern: "${PROJECT_DIR}/backend/course-service/**", comparator: 'GLOB'
                         changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
@@ -157,7 +172,11 @@ pipeline {
         stage('Test eureka Service') {
             when {
                 allOf {
-                    branch pattern: "feature/.*", comparator: "REGEXP"
+                    anyOf {
+                        changeRequest()
+                        branch pattern: "feature/.*", comparator: "REGEXP"
+                        branch pattern: "release/.*", comparator: "REGEXP"
+                    }
                     anyOf {
                         changeset pattern: "${PROJECT_DIR}/backend/eureka-service/**", comparator: 'GLOB'
                         changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
@@ -182,7 +201,11 @@ pipeline {
         stage('Test exam Service') {
             when {
                 allOf {
-                    branch pattern: "feature/.*", comparator: "REGEXP"
+                    anyOf {
+                        changeRequest()
+                        branch pattern: "feature/.*", comparator: "REGEXP"
+                        branch pattern: "release/.*", comparator: "REGEXP"
+                    }
                     anyOf {
                         changeset pattern: "${PROJECT_DIR}/backend/exam-service/**", comparator: 'GLOB'
                         changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
@@ -207,7 +230,11 @@ pipeline {
         stage('Test user Service') {
             when {
                 allOf {
-                    branch pattern: "feature/.*", comparator: "REGEXP"
+                    anyOf {
+                        changeRequest()
+                        branch pattern: "feature/.*", comparator: "REGEXP"
+                        branch pattern: "release/.*", comparator: "REGEXP"
+                    }
                     anyOf {
                         changeset pattern: "${PROJECT_DIR}/backend/user-service/**", comparator: 'GLOB'
                         changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
@@ -232,7 +259,11 @@ pipeline {
         stage('SonarQube Analysis - answer Service') {
             when {
                 allOf {
-                    branch pattern: "feature/.*", comparator: "REGEXP"
+                    anyOf {
+                        changeRequest()
+                        branch pattern: "feature/.*", comparator: "REGEXP"
+                        branch pattern: "release/.*", comparator: "REGEXP"
+                    }
                     anyOf {
                         changeset pattern: "${PROJECT_DIR}/backend/answer-service/**", comparator: 'GLOB'
                         changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
@@ -259,7 +290,11 @@ pipeline {
         stage('SonarQube Analysis - gateway Service') {
             when {
                 allOf {
-                    branch pattern: "feature/.*", comparator: "REGEXP"
+                    anyOf {
+                        changeRequest()
+                        branch pattern: "feature/.*", comparator: "REGEXP"
+                        branch pattern: "release/.*", comparator: "REGEXP"
+                    }
                     anyOf {
                         changeset pattern: "${PROJECT_DIR}/backend/api-gateway-service/**", comparator: 'GLOB'
                         changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
@@ -286,7 +321,11 @@ pipeline {
         stage('SonarQube Analysis - course Service') {
             when {
                 allOf {
-                    branch pattern: "feature/.*", comparator: "REGEXP"
+                    anyOf {
+                        changeRequest()
+                        branch pattern: "feature/.*", comparator: "REGEXP"
+                        branch pattern: "release/.*", comparator: "REGEXP"
+                    }
                     anyOf {
                         changeset pattern: "${PROJECT_DIR}/backend/course-service/**", comparator: 'GLOB'
                         changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
@@ -313,7 +352,11 @@ pipeline {
         stage('SonarQube Analysis - eureka Service') {
             when {
                 allOf {
-                    branch pattern: "feature/.*", comparator: "REGEXP"
+                    anyOf {
+                        changeRequest()
+                        branch pattern: "feature/.*", comparator: "REGEXP"
+                        branch pattern: "release/.*", comparator: "REGEXP"
+                    }
                     anyOf {
                         changeset pattern: "${PROJECT_DIR}/backend/eureka-service/**", comparator: 'GLOB'
                         changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
@@ -340,7 +383,11 @@ pipeline {
         stage('SonarQube Analysis - exam Service') {
             when {
                 allOf {
-                    branch pattern: "feature/.*", comparator: "REGEXP"
+                    anyOf {
+                        changeRequest()
+                        branch pattern: "feature/.*", comparator: "REGEXP"
+                        branch pattern: "release/.*", comparator: "REGEXP"
+                    }
                     anyOf {
                         changeset pattern: "${PROJECT_DIR}/backend/exam-service/**", comparator: 'GLOB'
                         changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
@@ -367,7 +414,11 @@ pipeline {
         stage('SonarQube Analysis - user Service') {
             when {
                 allOf {
-                    branch pattern: "feature/.*", comparator: "REGEXP"
+                    anyOf {
+                        changeRequest()
+                        branch pattern: "feature/.*", comparator: "REGEXP"
+                        branch pattern: "release/.*", comparator: "REGEXP"
+                    }
                     anyOf {
                         changeset pattern: "${PROJECT_DIR}/backend/user-service/**", comparator: 'GLOB'
                         changeset pattern: "${PROJECT_DIR}/backend/common-exam/**", comparator: 'GLOB'
@@ -393,7 +444,14 @@ pipeline {
         
         stage('Test Frontend') {
             when {
-                changeset pattern: "${PROJECT_DIR}/frontend/**", comparator: 'GLOB'
+                allOf {
+                    anyOf {
+                        changeRequest()
+                        branch pattern: "feature/.*", comparator: "REGEXP"
+                        branch pattern: "release/.*", comparator: "REGEXP"
+                    }
+                    changeset pattern: "${PROJECT_DIR}/frontend/**", comparator: 'GLOB'
+                }
             }
             agent {
                 docker {
@@ -432,7 +490,13 @@ pipeline {
 
         stage('Integration Tests - Develop') {
             when {
-                branch 'develop'
+                anyOf {
+                    branch 'develop'
+                    allOf {
+                        changeRequest()
+                        expression { env.CHANGE_TARGET == 'develop' }
+                    }
+                }
             }
             agent {
                 docker {
@@ -458,7 +522,10 @@ pipeline {
 
         stage('Selenium E2E Tests - Main') {
             when {
-                branch 'main'
+                allOf {
+                    changeRequest()
+                    expression { env.CHANGE_TARGET == 'main' }
+                }
             }
             agent {
                 docker {
@@ -488,6 +555,9 @@ pipeline {
 
 
         stage('Docker Cleanup') {
+            when {
+                branch 'main'
+            }
             steps {
                 sh '''
                 docker stop $(docker ps -aq) || true
@@ -497,12 +567,18 @@ pipeline {
         }
 
         stage('Docker Build') {
+            when {
+                branch 'main'
+            }
             steps {
                 sh 'docker compose build'
             }
         }
 
         stage('Deploy Containers') {
+            when {
+                branch 'main'
+            }
             steps {
                 sh '''
                 docker compose down --remove-orphans || true
