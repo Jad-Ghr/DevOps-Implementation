@@ -711,7 +711,6 @@ pipeline {
                         echo "Gateway API URL:"
                         kubectl get svc gateway -n microservices -o jsonpath='{.status.loadBalancer.ingress[0].ip}:{.spec.ports[0].port}'
                         '''
-                        '''
                     } catch (Exception e) {
                         echo "Kubernetes deployment failed. Error: ${e.getMessage()}"
                         echo "To troubleshoot:"
