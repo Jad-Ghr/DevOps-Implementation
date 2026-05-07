@@ -486,7 +486,16 @@ pipeline {
             }
             steps {
                 dir("${PROJECT_DIR}/frontend") {
-                    sh 'npm install'
+                    sh '''
+                    # Configure npm for better network resilience
+                    npm config set fetch-timeout 120000
+                    npm config set fetch-retry-mintimeout 20000
+                    npm config set fetch-retry-maxtimeout 120000
+                    npm config set fetch-retries 5
+                    
+                    # Install dependencies with retry logic
+                    npm install || npm install || npm install
+                    '''
                     sh 'npm run build'
                 }
             }
