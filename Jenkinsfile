@@ -8,7 +8,11 @@ pipeline {
         PROJECT_DIR = "spring-boot-microservices-angular"
         SONAR_HOST_URL = "http://localhost:9000"
         SONAR_LOGIN = "sqa_c89a3be8cf3b712f4b8ea4c905fafc9e0ee2c5b1"
-        DOCKER_REGISTRY = "your-dockerhub-username"
+        DOCKER_REGISTRY = "devopsacr05041642.azurecr.io"
+        ACR_RESOURCE_GROUP = "devops"
+        ACR_REGISTRY_NAME = "devopsacr05041642"
+        AKS_RESOURCE_GROUP = "devops"
+        AKS_CLUSTER_NAME = "devops-aks"
         BRANCH_NAME = "${env.GIT_BRANCH ?: env.BRANCH_NAME ?: 'unknown'}"
         CHANGE_ID = "${env.CHANGE_ID ?: ''}"
         CHANGE_TARGET = "${env.CHANGE_TARGET ?: ''}"
@@ -587,36 +591,52 @@ pipeline {
             }
         }
 
-        stage('Docker Image Push') {
+        stage('Build and Push to ACR') {
             when {
                 branch 'main'
             }
             steps {
                 script {
                     try {
-                        // Get credentials
-                        def dockerUsername = credentials('docker-username')
-                        def dockerPassword = credentials('docker-password')
+                        echo "Building and pushing Docker images to Azure Container Registry (ACR)..."
                         
-                        // Login to Docker registry
-                        sh "echo ${dockerPassword} | docker login -u ${dockerUsername} --password-stdin"
+                        // Backend services
+                        def backendServices = [
+                            'eureka-service',
+                            'api-gateway-service',
+                            'answer-service',
+                            'course-service',
+                            'exam-service',
+                            'user-service'
+                        ]
                         
-                        // Tag and push images to Docker registry
-                        def services = ['eureka-service', 'api-gateway-service', 'answer-service', 'course-service', 'exam-service', 'user-service', 'angular-app']
-                        services.each { service ->
-                            sh "docker tag ${service}:latest ${DOCKER_REGISTRY}/${service}:latest"
-                            sh "docker push ${DOCKER_REGISTRY}/${service}:latest"
+                        backendServices.each { service ->
+                            echo "Building and pushing ${service}..."
+                            sh '''
+                                cd ${PROJECT_DIR}/backend/${service}
+                                az acr build --registry ${ACR_REGISTRY_NAME} --image ${service}:latest .
+                                cd -
+                            '''
                         }
-                        echo "Docker images successfully pushed to registry"
+                        
+                        // Frontend
+                        echo "Building and pushing angular-app..."
+                        sh '''
+                            cd ${PROJECT_DIR}/frontend
+                            az acr build --registry ${ACR_REGISTRY_NAME} --image angular-app:latest .
+                            cd -
+                        '''
+                        
+                        echo "All Docker images successfully built and pushed to ACR"
                     } catch (Exception e) {
-                        echo "Docker credentials not configured. Skipping image push. Error: ${e.getMessage()}"
-                        echo "To enable Docker push, configure 'docker-username' and 'docker-password' credentials in Jenkins"
+                        echo "Error pushing images to ACR: ${e.getMessage()}"
+                        echo "Ensure Azure CLI is installed and you have access to ACR"
                     }
                 }
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy to Azure Kubernetes Service (AKS)') {
             when {
                 branch 'main'
             }
@@ -624,30 +644,23 @@ pipeline {
                 script {
                     try {
                         sh '''
-                        # Check if kubectl is available
-                        if ! command -v kubectl &> /dev/null; then
-                            echo "kubectl not found. Skipping Kubernetes deployment."
-                            echo "To enable Kubernetes deployment:"
-                            echo "1. Install kubectl: curl -LO https://dl.k8s.io/release/stable.txt"
-                            echo "2. Set up a Kubernetes cluster (Minikube, Kind, or cloud)"
-                            echo "3. Configure kubeconfig for cluster access"
-                            echo "4. For local testing: install Minikube and run 'minikube start'"
-                            exit 0
-                        fi
-                        
-                        # Check if cluster is accessible
-                        if ! kubectl cluster-info &> /dev/null; then
-                            echo "Kubernetes cluster not accessible. Skipping deployment."
-                            echo "Ensure your kubeconfig is properly configured."
-                            echo "For Minikube: minikube start"
-                            echo "For other clusters: check kubeconfig and network access"
-                            exit 0
-                        fi
+                        # Get AKS cluster credentials
+                        echo "Retrieving AKS cluster credentials..."
+                        az aks get-credentials --resource-group ${AKS_RESOURCE_GROUP} --name ${AKS_CLUSTER_NAME} --overwrite-existing
                         
                         # Create namespace
                         kubectl create namespace microservices --dry-run=client -o yaml | kubectl apply -f -
                         
-                        # Update image references in YAML files
+                        # Create ACR secret for image pull
+                        echo "Creating ACR image pull secret..."
+                        REGISTRY_PASSWORD=$(az acr credential show --resource-group ${ACR_RESOURCE_GROUP} --name ${ACR_REGISTRY_NAME} --query "passwords[0].value" -o tsv)
+                        kubectl create secret docker-registry acr-secret \
+                          --docker-server=${DOCKER_REGISTRY} \
+                          --docker-username=00000000-0000-0000-0000-000000000000 \
+                          --docker-password=${REGISTRY_PASSWORD} \
+                          -n microservices --dry-run=client -o yaml | kubectl apply -f - || true
+                        
+                        # Update image references in YAML files to use ACR
                         sed -i "s|image: eureka-service:latest|image: ${DOCKER_REGISTRY}/eureka-service:latest|g" k8s/eureka.yaml
                         sed -i "s|image: api-gateway-service:latest|image: ${DOCKER_REGISTRY}/api-gateway-service:latest|g" k8s/gateway.yaml
                         sed -i "s|image: answer-service:latest|image: ${DOCKER_REGISTRY}/answer-service:latest|g" k8s/answer-service.yaml
@@ -684,13 +697,20 @@ pipeline {
                         kubectl wait --for=condition=available --timeout=300s deployment/user-service -n microservices || echo "User service not ready, continuing..."
                         kubectl wait --for=condition=available --timeout=300s deployment/frontend -n microservices || echo "Frontend not ready, continuing..."
                         
-                        echo "Kubernetes deployment completed successfully!"
-                        echo "Get service URLs:"
-                        echo "kubectl get services -n microservices"
+                        # Get service information
+                        echo "====================================="
+                        echo "Deployment completed successfully!"
+                        echo "====================================="
                         echo ""
-                        echo "Access your application:"
-                        echo "- Frontend: kubectl get svc frontend -n microservices -o jsonpath='{.status.loadBalancer.ingress[0].*}'"
-                        echo "- Gateway: kubectl get svc gateway -n microservices -o jsonpath='{.status.loadBalancer.ingress[0].*}'"
+                        echo "Service URLs:"
+                        kubectl get services -n microservices
+                        echo ""
+                        echo "Frontend URL:"
+                        kubectl get svc frontend -n microservices -o jsonpath='{.status.loadBalancer.ingress[0].ip}:{.spec.ports[0].port}'
+                        echo ""
+                        echo "Gateway API URL:"
+                        kubectl get svc gateway -n microservices -o jsonpath='{.status.loadBalancer.ingress[0].ip}:{.spec.ports[0].port}'
+                        '''
                         '''
                     } catch (Exception e) {
                         echo "Kubernetes deployment failed. Error: ${e.getMessage()}"

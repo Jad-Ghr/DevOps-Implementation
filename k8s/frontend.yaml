@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: your-dockerhub-username/angular-app:latest
-        imagePullPolicy: Never
+        image: angular-app:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8090
 ---

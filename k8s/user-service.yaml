@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
       - name: user-service
-        image: microservices-devops-user-service:latest
-        imagePullPolicy: Never
+        image: devopsacr05041642.azurecr.io/user-service:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
         env:

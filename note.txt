@@ -1,0 +1,2 @@
+az aks stop -g devops -n devops-aks
+az aks start -g devops -n devops-aks
