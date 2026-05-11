@@ -604,6 +604,12 @@ pipeline {
             when {
                 branch 'main'
             }
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/azure-cli:latest'
+                    args '-u root'
+                }
+            }
             steps {
                 script {
                     try {
@@ -621,11 +627,11 @@ pipeline {
                         
                         backendServices.each { service ->
                             echo "Building and pushing ${service}..."
-                            sh '''
+                            sh """
                                 cd ${PROJECT_DIR}/backend/${service}
                                 az acr build --registry ${ACR_REGISTRY_NAME} --image ${service}:latest .
                                 cd -
-                            '''
+                            """
                         }
                         
                         // Frontend
@@ -649,10 +655,19 @@ pipeline {
             when {
                 branch 'main'
             }
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/azure-cli:latest'
+                    args '-u root'
+                }
+            }
             steps {
                 script {
                     try {
                         sh '''
+                        # Ensure kubectl is available
+                        az aks install-cli --install-location /usr/local/bin/kubectl || true
+                        
                         # Get AKS cluster credentials
                         echo "Retrieving AKS cluster credentials..."
                         az aks get-credentials --resource-group ${AKS_RESOURCE_GROUP} --name ${AKS_CLUSTER_NAME} --overwrite-existing
@@ -737,15 +752,17 @@ pipeline {
             when {
                 branch 'main'
             }
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/azure-cli:latest'
+                    args '-u root'
+                }
+            }
             steps {
                 script {
                     try {
                         sh '''
-                        # Check if kubectl is available
-                        if ! command -v kubectl &> /dev/null; then
-                            echo "kubectl not found. Skipping monitoring setup."
-                            exit 0
-                        fi
+                        az aks install-cli --install-location /usr/local/bin/kubectl || true
                         
                         # Create monitoring namespace
                         kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
