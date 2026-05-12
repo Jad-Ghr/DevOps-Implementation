@@ -17,6 +17,10 @@ pipeline {
         CHANGE_ID = "${env.CHANGE_ID ?: ''}"
         CHANGE_TARGET = "${env.CHANGE_TARGET ?: ''}"
         CHANGE_BRANCH = "${env.CHANGE_BRANCH ?: ''}"
+        AZURE_CLIENT_ID = credentials('azure-client-id')
+        AZURE_CLIENT_SECRET = credentials('azure-client-secret')
+        AZURE_TENANT_ID = credentials('azure-tenant-id')
+        AZURE_SUBSCRIPTION_ID = credentials('azure-subscription-id')
     }
 
     stages {
@@ -613,6 +617,10 @@ pipeline {
             steps {
                 script {
                     try {
+                        sh '''
+                        az login --service-principal --username ${AZURE_CLIENT_ID} --password ${AZURE_CLIENT_SECRET} --tenant ${AZURE_TENANT_ID}
+                        az account set --subscription ${AZURE_SUBSCRIPTION_ID}
+                        '''
                         echo "Building and pushing Docker images to Azure Container Registry (ACR)..."
                         
                         // Backend services
@@ -665,6 +673,8 @@ pipeline {
                 script {
                     try {
                         sh '''
+                        az login --service-principal --username ${AZURE_CLIENT_ID} --password ${AZURE_CLIENT_SECRET} --tenant ${AZURE_TENANT_ID}
+                        az account set --subscription ${AZURE_SUBSCRIPTION_ID}
                         # Ensure kubectl is available
                         az aks install-cli --install-location /usr/local/bin/kubectl || true
                         
@@ -673,7 +683,7 @@ pipeline {
                         az aks get-credentials --resource-group ${AKS_RESOURCE_GROUP} --name ${AKS_CLUSTER_NAME} --overwrite-existing
                         
                         # Create namespace
-                        kubectl create namespace microservices --dry-run=client -o yaml | kubectl apply -f -
+                        kubectl create namespace microservices --dry-run=client -o yaml | kubectl apply -f - --validate=false
                         
                         # Create ACR secret for image pull
                         echo "Creating ACR image pull secret..."
@@ -762,10 +772,12 @@ pipeline {
                 script {
                     try {
                         sh '''
+                        az login --service-principal --username ${AZURE_CLIENT_ID} --password ${AZURE_CLIENT_SECRET} --tenant ${AZURE_TENANT_ID}
+                        az account set --subscription ${AZURE_SUBSCRIPTION_ID}
                         az aks install-cli --install-location /usr/local/bin/kubectl || true
                         
                         # Create monitoring namespace
-                        kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+                        kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f - --validate=false
                         
                         # Deploy monitoring stack
                         kubectl apply -f k8s/monitoring.yaml
