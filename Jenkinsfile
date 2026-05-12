@@ -635,9 +635,10 @@ pipeline {
                         
                         backendServices.each { service ->
                             echo "Building and pushing ${service}..."
+                            def dockerfileName = (service == 'answer-service') ? 'dockerfile' : 'Dockerfile'
                             sh """
-                                cd ${PROJECT_DIR}/backend/${service}
-                                az acr build --registry ${ACR_REGISTRY_NAME} --image ${service}:latest .
+                                cd ${PROJECT_DIR}/backend
+                                az acr build --registry ${ACR_REGISTRY_NAME} --image ${service}:latest --file ${service}/${dockerfileName} .
                                 cd -
                             """
                         }
@@ -664,10 +665,7 @@ pipeline {
                 branch 'main'
             }
             agent {
-                docker {
-                    image 'mcr.microsoft.com/azure-cli:latest'
-                    args '-u root'
-                }
+                label 'master'  // Use Jenkins master or a node with az cli and kubectl
             }
             steps {
                 script {
@@ -676,7 +674,7 @@ pipeline {
                         az login --service-principal --username ${AZURE_CLIENT_ID} --password ${AZURE_CLIENT_SECRET} --tenant ${AZURE_TENANT_ID}
                         az account set --subscription ${AZURE_SUBSCRIPTION_ID}
                         # Ensure kubectl is available
-                        az aks install-cli --install-location /usr/local/bin/kubectl || true
+                        sh 'which kubectl || az aks install-cli --install-location /usr/local/bin/kubectl || true'
                         
                         # Get AKS cluster credentials
                         echo "Retrieving AKS cluster credentials..."
@@ -693,6 +691,8 @@ pipeline {
                           --docker-username=00000000-0000-0000-0000-000000000000 \
                           --docker-password=${REGISTRY_PASSWORD} \
                           -n microservices --dry-run=client -o yaml | kubectl apply -f - || true
+                        kubectl patch serviceaccount default -n microservices \
+                          -p '{"imagePullSecrets":[{"name":"acr-secret"}]}' || true
                         
                         # Update image references in YAML files to use ACR
                         sed -i "s|image: eureka-service:latest|image: ${DOCKER_REGISTRY}/eureka-service:latest|g" k8s/eureka.yaml

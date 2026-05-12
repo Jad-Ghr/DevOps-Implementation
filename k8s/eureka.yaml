@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: eureka
-        image: microservices-devops-eureka:latest
+        image: eureka-service:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8761

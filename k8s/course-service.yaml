@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: course-service
-        image: microservices-devops-course-service:latest
+        image: course-service:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8081

@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: gateway
-        image: microservices-devops-gateway:latest
+        image: api-gateway-service:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8090

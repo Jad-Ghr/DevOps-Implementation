@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: exam-service
-        image: microservices-devops-exam-service:latest
+        image: exam-service:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8082
